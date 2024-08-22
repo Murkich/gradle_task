@@ -1,9 +1,14 @@
 allprojects {
     apply plugin: 'java'
+    apply plugin: 'jacoco'
 
     java {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    jacoco {
+        toolVersion = "0.8.12"
     }
 
     repositories {
@@ -23,23 +28,49 @@ allprojects {
     }
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
-
 group = 'ru.clevertec'
 version = '1.0-SNAPSHOT'
 
-repositories {
-    mavenCentral()
+project(':api') {
+    dependencies {
+        implementation project(':core')
+    }
 }
 
-dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+tasks.register('jacocoRootReport', JacocoReport) {
+    dependsOn = subprojects.test + subprojects.jacocoTestReport
+
+    additionalSourceDirs.from = subprojects.sourceSets.main.allSource.srcDirs
+    sourceDirectories.from = subprojects.sourceSets.main.allSource.srcDirs
+    classDirectories.from = subprojects.sourceSets.main.output
+    executionData.from = subprojects.jacocoTestReport.executionData
+
+    reports {
+        html.required = true
+        xml.required = false
+        csv.required = false
+    }
 }
 
-test {
-    useJUnitPlatform()
+subprojects {
+    tasks.withType(Test) {
+        finalizedBy jacocoTestReport
+    }
+
+    tasks.jacocoTestReport {
+        reports {
+            html.required = true
+        }
+        dependsOn test
+    }
+}
+
+subprojects {
+    tasks.named('compileJava') {
+        dependsOn rootProject.tasks.named('jar')
+    }
+
+    tasks.named('compileTestJava') {
+        dependsOn rootProject.tasks.named('jar')
+    }
 }
