@@ -1,2 +1,3 @@
 rootProject.name = 'PositiveNumber'
+include 'core'
 
