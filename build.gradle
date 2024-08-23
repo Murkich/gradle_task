@@ -63,9 +63,7 @@ subprojects {
         }
         dependsOn test
     }
-}
 
-subprojects {
     tasks.named('compileJava') {
         dependsOn rootProject.tasks.named('jar')
     }
